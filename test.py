@@ -1,7 +1,5 @@
 import random
 
-from my_task import GTreeGen
-
 
 class XGen:
     rows = 0
@@ -19,6 +17,9 @@ class XGen:
 
     def attr(self):
         return 'A-' + str(random.randint(1, self.rows))
+
+    def r(self, s=1, e=10):
+        return random.randint(s, e)
 
 
 class GTrivialGen(XGen):
@@ -41,41 +42,40 @@ class GTrivialGen(XGen):
         return self.data
 
 
-# c = GTrivialGen(2, [])
-# c.run()
+class GHierarchy(XGen):
+    node_index = 1
 
-# class GTreeGen:
-#     __count = 0
-#     __rows = 0
-#     __data = []
-#
-#     def __init__(self, rows):
-#         self.__rows = rows
-#
-#     def __r(self, s=1, e=10):
-#         return random.randint(s, e)
-#
-#     def __attr(self):
-#         return 'A-' + str(random.randint(1, self.__rows))
-#
-#     def __grs(self, f1):
-#         for i in range(self.__rows):
-#             c = self.__r(0, self.__count - 1)
-#             self.__data.append([c, self.__count, self.__attr(), self.__attr(), self.__attr()])
-#             self.__count = self.__count + 1
-#
-#     def run(self):
-#         f1 = self.__count
-#         self.__count = self.__count + 1
-#         self.__grs(f1)
-#         return self.__data
+    level_len = 4
+    levels = []
 
-c = GTreeGen(6, [])
-d = c.run()
-for i in d:
-    print(i)
+    def gen_nodes(self, s, e):
+        n = []
+        for x in range(1, self.r(s, e)):
+            n.append(self.node_index)
+            self.node_index = self.node_index + 1
+        return n
 
-# c = GTreeGen(6)
-# d = c.run()
-# for i in d:
-#     print(i)
+    def add_linked_nodes(self, parent, children):
+        for i in children:
+            self.data.append([parent, i, self.attr(), self.attr(), self.attr()])
+
+    def run(self):
+        self.levels.append([0, [0]])
+        for i in range(1, self.level_len):
+            self.levels.append([i, self.gen_nodes(3, 10)])
+
+        for i in range(self.level_len - 1):
+            for n in self.levels[i][1]:
+                self.add_linked_nodes(n, self.levels[i + 1][1])
+
+        for i in self.levels:
+            print(i)
+
+        print('\n')
+
+        for i in self.data:
+            print(i)
+
+
+h = GHierarchy(10, [])
+h.run()
