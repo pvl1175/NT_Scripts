@@ -45,7 +45,7 @@ class GTrivialGen(XGen):
 class GHierarchy(XGen):
     node_index = 1
 
-    level_len = 4
+    level_len = 8
     levels = []
 
     def gen_nodes(self, s, e):
@@ -63,10 +63,15 @@ class GHierarchy(XGen):
         self.levels.append([0, [0]])
         for i in range(1, self.level_len):
             self.levels.append([i, self.gen_nodes(3, 10)])
+            # arr = self.gen_nodes(3, 10)
+            # self.levels.append([i, random.sample(arr, 2)])
 
         for i in range(self.level_len - 1):
             for n in self.levels[i][1]:
-                self.add_linked_nodes(n, self.levels[i + 1][1])
+                if i == 0 or n == self.levels[i][1][len(self.levels[i][1]) - 1]:
+                    self.add_linked_nodes(n, self.levels[i + 1][1])
+                else:
+                    self.add_linked_nodes(n, random.sample(self.levels[i + 1][1], self.r(1, len(self.levels[i + 1][1]))))
 
         for i in self.levels:
             print(i)

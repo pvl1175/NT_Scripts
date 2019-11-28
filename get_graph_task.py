@@ -189,6 +189,40 @@ class GSegGen:
         return self.__graph
 
 
+class GHierarchy(XGen):
+    node_index = 1
+
+    level_len = 8
+    levels = []
+
+    def r(self, s=1, e=10):
+        return random.randint(s, e)
+
+    def gen_nodes(self, s, e):
+        n = []
+        for x in range(1, self.r(s, e)):
+            n.append(self.node_index)
+            self.node_index = self.node_index + 1
+        return n
+
+    def add_linked_nodes(self, parent, children):
+        for i in children:
+            self.data.append([parent, i, self.attr(), self.attr(), self.attr()])
+
+    def run(self):
+        self.levels.append([0, [0]])
+        for i in range(1, self.level_len):
+            self.levels.append([i, self.gen_nodes(3, 10)])
+            # arr = self.gen_nodes(3, 10)
+            # self.levels.append([i, random.sample(arr, 2)])
+
+        for i in range(self.level_len - 1):
+            for n in self.levels[i][1]:
+                # self.add_linked_nodes(n, self.levels[i + 1][1])
+                self.add_linked_nodes(n, random.sample(self.levels[i + 1][1], self.r(1, len(self.levels[i + 1][1]))))
+
+        return self.data
+
 class GenHeader(metaclass=Header):
     display_name = 'Gen table'
 
@@ -256,7 +290,7 @@ class GenTask(Task):
             EnterParamField('nodes', 'Nodes', ValueType.Integer, is_array=False, required=True, default_value=3,
                             category='Required', description='Nodes count'),
             EnterParamField('graphType', 'GraphType', ValueType.String,
-                            predefined_values=['Trivial', 'Tree', 'Random', 'Full', 'XGraph'], category='Required',
+                            predefined_values=['Trivial', 'Tree', 'Random', 'Full', 'XGraph', 'Hierarchy'], category='Required',
                             description='Graph types', default_value='Trivial'),
             EnterParamField('fieldx', 'FieldX', ValueType.String, is_array=True,
                             value_sources=[ValueSource(FieldType.FieldX)])
@@ -287,3 +321,6 @@ class GenTask(Task):
         if enter_params.graphType == 'XGraph':
             self.__fill_result(result_writer,
                                GSegGen(enter_params.segments, enter_params.nodes, enter_params.fieldx).run())
+        if enter_params.graphType == 'Hierarchy':
+            self.__fill_result(result_writer, GHierarchy(enter_params.rows, []).run())
+            # self.__fill_result(result_writer, GHierarchy(enter_params.rows, enter_params.fieldx).run())
