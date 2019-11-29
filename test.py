@@ -3,13 +3,19 @@ import random
 
 class XGen:
     rows = 0
+    cc = 1
     data = []
     temp = []
     linked_nodes = []
 
-    def __init__(self, rows, liked_nodes):
+    def __init__(self, rows, liked_nodes, cc=1):
+        self.cc = cc
         self.rows = rows
         self.linked_nodes = liked_nodes
+
+    def add_nodes(self, s, e):
+        for i in range(1, self.r(2, 4)):
+            self.data.append([s, e, self.attr(), self.attr(), self.attr()])
 
     def append_to_temp(self, val):
         if val not in self.temp:
@@ -21,66 +27,62 @@ class XGen:
     def r(self, s=1, e=10):
         return random.randint(s, e)
 
-
 class GTrivialGen(XGen):
 
-    def grs(self, f1):
-        self.append_to_temp(f1)
-        for i in random.sample(range(1, self.rows), self.rows - 1):
-            self.data.append([f1, i, self.attr(), self.attr(), self.attr()])
+    def grs(self, f, m):
+        self.append_to_temp(f)
+        for i in random.sample(range(1 + m * self.rows, self.rows + m * self.rows), self.rows - 1):
+            self.add_nodes(f, i)
             self.append_to_temp(i)
-        self.add_linked_nodes(f1)
+        self.add_linked_nodes(f)
 
-    def add_linked_nodes(self, f1):
+    def add_linked_nodes(self, f):
         for i in self.linked_nodes:
             if i not in self.temp:
-                self.data.append([f1, i, self.attr(), self.attr(), self.attr()])
+                self.data.append([f, i, self.attr(), self.attr(), self.attr()])
+                # self.data.append([f, str(i), self.attr(), self.attr(), self.attr()])
                 self.temp.append(i)
 
     def run(self):
-        self.grs(0)
+        m = 0
+        for i in range(0, self.cc):
+            self.grs(i + i * self.rows, i)
         return self.data
 
+class GFullGen(XGen):
+    def grs(self, m):
+        r = m * (self.rows + 1)
+        while r < self.rows + m * self.rows:
+            j = r + 1
+            self.append_to_temp(r)
+            while j <= self.rows + m * self.rows:
+                # self.data.append([r, j, self.attr(), self.attr(), self.attr()])
+                self.add_nodes(r, j)
+                self.append_to_temp(j)
+                j = j + 1
+            r = r + 1
 
-class GHierarchy(XGen):
-    node_index = 1
+        self.add_linked_nodes()
+        # self.data
 
-    level_len = 8
-    levels = []
-
-    def gen_nodes(self, s, e):
-        n = []
-        for x in range(1, self.r(s, e)):
-            n.append(self.node_index)
-            self.node_index = self.node_index + 1
-        return n
-
-    def add_linked_nodes(self, parent, children):
-        for i in children:
-            self.data.append([parent, i, self.attr(), self.attr(), self.attr()])
+    def add_linked_nodes(self):
+        for i in self.linked_nodes:
+            if i not in self.temp:
+                for j in self.temp:
+                    self.data.append([i, j, self.attr(), self.attr(), self.attr()])
+                self.temp.append(i)
 
     def run(self):
-        self.levels.append([0, [0]])
-        for i in range(1, self.level_len):
-            self.levels.append([i, self.gen_nodes(3, 10)])
-            # arr = self.gen_nodes(3, 10)
-            # self.levels.append([i, random.sample(arr, 2)])
+        for i in range(0, self.cc):
+            self.grs(i)
+        return self.data
 
-        for i in range(self.level_len - 1):
-            for n in self.levels[i][1]:
-                if i == 0 or n == self.levels[i][1][len(self.levels[i][1]) - 1]:
-                    self.add_linked_nodes(n, self.levels[i + 1][1])
-                else:
-                    self.add_linked_nodes(n, random.sample(self.levels[i + 1][1], self.r(1, len(self.levels[i + 1][1]))))
+# g = GTrivialGen(10, [], 2)
+# d = g.run()
 
-        for i in self.levels:
-            print(i)
+g = GFullGen(3, [], 2)
+d = g.run()
 
-        print('\n')
+for i in d:
+    print(i)
 
-        for i in self.data:
-            print(i)
-
-
-h = GHierarchy(10, [])
-h.run()

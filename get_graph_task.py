@@ -5,16 +5,18 @@ from lighthouse import *
 
 class XGen:
     rows = 0
+    connected_comp = 1
     data = []
     temp = []
     linked_nodes = []
 
-    def __init__(self, rows, liked_nodes):
+    def __init__(self, rows, liked_nodes, connected_comp=1):
+        self.connected_comp = connected_comp
         self.rows = rows
         self.linked_nodes = liked_nodes
 
     def add_nodes(self, s, e):
-        for i in range(1, self.r(1, 3)):
+        for i in range(1, self.r(2, 4)):
             self.data.append([s, e, self.attr(), self.attr(), self.attr()])
 
     def append_to_temp(self, val):
@@ -24,56 +26,55 @@ class XGen:
     def attr(self):
         return 'A-' + str(random.randint(1, self.rows))
 
+    def r(self, s=1, e=10):
+        return random.randint(s, e)
+
 
 # tree type graph
 class GTreeGen(XGen):
     __count = 0
 
-    def r(self, s=1, e=10):
-        return random.randint(s, e)
-
-    def grs(self):
+    def gen(self, offset):
         for i in range(self.rows):
-            c = self.r(0, self.__count - 1)
-            self.data.append([c, self.__count, self.attr(), self.attr(), self.attr()])
-            #self.add_nodes(c, self.__count)
-            self.append_to_temp(c)
+            parent = self.r(0 + offset * i, (self.__count - 1) + offset * i)
+            self.add_nodes(parent, self.__count)
+            self.append_to_temp(parent)
             self.append_to_temp(self.__count)
             self.__count = self.__count + 1
         self.add_linked_nodes()
 
     def add_linked_nodes(self):
-        for i in self.linked_nodes:
-            if i not in self.temp:
-                self.data.append([0, i, self.attr(), self.attr(), self.attr()])
-                self.temp.append(i)
+        for child in self.linked_nodes:
+            if child not in self.temp:
+                self.data.append([0, child, self.attr(), self.attr(), self.attr()])
+                self.temp.append(child)
 
     def run(self):
         self.__count = self.__count + 1
-        self.grs()
+        for cc in range(0, self.connected_comp):
+            self.gen(cc)
         return self.data
 
 
 # trivial type graph
 class GTrivialGen(XGen):
 
-    def grs(self, f1):
-        self.append_to_temp(f1)
-        for i in random.sample(range(1, self.rows), self.rows - 1):
-            #self.data.append([f1, i, self.attr(), self.attr(), self.attr()])
-            self.add_nodes(f1, i)
-            self.append_to_temp(i)
-        self.add_linked_nodes(f1)
+    def gen(self, parent, offset):
+        self.append_to_temp(parent)
+        for child in random.sample(range(1 + offset * self.rows, self.rows + offset * self.rows), self.rows - 1):
+            self.add_nodes(parent, child)
+            self.append_to_temp(child)
+        self.add_linked_nodes(parent)
 
-    def add_linked_nodes(self, f1):
-        for i in self.linked_nodes:
-            if i not in self.temp:
-                self.data.append([f1, i, self.attr(), self.attr(), self.attr()])
-                self.data.append([f1, i, self.attr(), self.attr(), self.attr()])
-                self.temp.append(i)
+    def add_linked_nodes(self, parent):
+        for child in self.linked_nodes:
+            if child not in self.temp:
+                self.data.append([parent, child, self.attr(), self.attr(), self.attr()])
+                self.temp.append(child)
 
     def run(self):
-        self.grs(0)
+        for cc in range(0, self.connected_comp):
+            self.gen(cc + cc * self.rows, cc)
         return self.data
 
 
@@ -107,30 +108,28 @@ class GRandomGen(XGen):
 
 # full graph
 class GFullGen(XGen):
-    def grs(self):
-        r = 0
-        while r < self.rows:
-            j = r + 1
-            self.append_to_temp(r)
-            while j <= self.rows:
-                # self.data.append([r, j, self.attr(), self.attr(), self.attr()])
-                self.add_nodes(r, j)
-                self.append_to_temp(j)
-                j = j + 1
-            r = r + 1
-
+    def gen(self, offset):
+        parent = offset * (self.rows + 1)
+        while parent < self.rows + offset * self.rows:
+            child = parent + 1
+            self.append_to_temp(parent)
+            while child <= self.rows + offset * self.rows:
+                self.add_nodes(parent, child)
+                self.append_to_temp(child)
+                child = child + 1
+            parent = parent + 1
         self.add_linked_nodes()
-        return self.data
 
     def add_linked_nodes(self):
-        for i in self.linked_nodes:
-            if i not in self.temp:
-                for j in self.temp:
-                    self.data.append([i, j, self.attr(), self.attr(), self.attr()])
-                self.temp.append(i)
+        for parent in self.linked_nodes:
+            if parent not in self.temp:
+                for child in self.temp:
+                    self.data.append([parent, child, self.attr(), self.attr(), self.attr()])
+                self.temp.append(parent)
 
     def run(self):
-        self.grs()
+        for cc in range(0, self.connected_comp):
+            self.gen(cc)
         return self.data
 
 
@@ -147,6 +146,9 @@ class GSegGen:
         self.__sgm_count = sgm_count
         self.__nodes_count = nodes_count
         self.__linked_nodes = linked_nodes
+
+    def __r(self, s=1, e=10):
+        return random.randint(s, e)
 
     def __sgm_gen(self):
         for i in range(self.__sgm_count):
@@ -173,7 +175,7 @@ class GSegGen:
         for s in src_sgm:
             for n in self.__get_map(dst_sgm):
                 if [s, n] not in self.__temp and [n, s] not in self.__temp:
-                    for i in range(1, self.r(1, 3)):
+                    for i in range(1, self.__r(1, 3)):
                         self.__graph.append([s, n, self.__attr(), self.__attr(), self.__attr()])
 
                     self.__temp.append([s, n])
@@ -195,10 +197,7 @@ class GHierarchy(XGen):
     level_len = 8
     levels = []
 
-    def r(self, s=1, e=10):
-        return random.randint(s, e)
-
-    def gen_nodes(self, s, e):
+    def gen(self, s, e):
         n = []
         for x in range(1, self.r(s, e)):
             n.append(self.node_index)
@@ -206,22 +205,26 @@ class GHierarchy(XGen):
         return n
 
     def add_linked_nodes(self, parent, children):
-        for i in children:
-            self.data.append([parent, i, self.attr(), self.attr(), self.attr()])
+        for child in children:
+            self.add_nodes(parent, child)
 
     def run(self):
-        self.levels.append([0, [0]])
-        for i in range(1, self.level_len):
-            self.levels.append([i, self.gen_nodes(3, 10)])
-            # arr = self.gen_nodes(3, 10)
-            # self.levels.append([i, random.sample(arr, 2)])
+        for cc in range(0, self.connected_comp):
 
-        for i in range(self.level_len - 1):
-            for n in self.levels[i][1]:
-                # self.add_linked_nodes(n, self.levels[i + 1][1])
-                self.add_linked_nodes(n, random.sample(self.levels[i + 1][1], self.r(1, len(self.levels[i + 1][1]))))
+            self.levels.clear()
+
+            self.levels.append([self.node_index, [self.node_index]])
+            for i in range(1, self.level_len):
+                self.levels.append([i, self.gen(3, 10)])
+
+            for i in range(self.level_len - 1):
+                for n in self.levels[i][1]:
+                    self.add_linked_nodes(n, random.sample(self.levels[i + 1][1], self.r(1, len(self.levels[i + 1][1]))))
+
+            self.node_index = self.node_index + 1
 
         return self.data
+
 
 class GenHeader(metaclass=Header):
     display_name = 'Gen table'
@@ -285,12 +288,16 @@ class GenTask(Task):
         return EnterParamCollection(
             EnterParamField('rows', 'Rows', ValueType.Integer, is_array=False, required=True, default_value=10,
                             category='Required', description='Rows count'),
+            EnterParamField('connected_component', 'Connected component', ValueType.Integer, is_array=False,
+                            required=True, default_value=1,
+                            category='Required', description='Rows count'),
             EnterParamField('segments', 'Segments', ValueType.Integer, is_array=False, required=True, default_value=2,
                             category='Required', description='Segments count'),
             EnterParamField('nodes', 'Nodes', ValueType.Integer, is_array=False, required=True, default_value=3,
                             category='Required', description='Nodes count'),
             EnterParamField('graphType', 'GraphType', ValueType.String,
-                            predefined_values=['Trivial', 'Tree', 'Random', 'Full', 'XGraph', 'Hierarchy'], category='Required',
+                            predefined_values=['Trivial', 'Tree', 'Random', 'Full', 'XGraph', 'Hierarchy'],
+                            category='Required',
                             description='Graph types', default_value='Trivial'),
             EnterParamField('fieldx', 'FieldX', ValueType.String, is_array=True,
                             value_sources=[ValueSource(FieldType.FieldX)])
@@ -311,16 +318,17 @@ class GenTask(Task):
 
     def execute(self, enter_params, result_writer, log_writer, temp_directory):
         if enter_params.graphType == 'Trivial':
-            self.__fill_result(result_writer, GTrivialGen(enter_params.rows, enter_params.fieldx).run())
+            self.__fill_result(result_writer, GTrivialGen(enter_params.rows, enter_params.fieldx,
+                                                          enter_params.connected_component).run())
         if enter_params.graphType == 'Tree':
-            self.__fill_result(result_writer, GTreeGen(enter_params.rows, enter_params.fieldx).run())
+            self.__fill_result(result_writer, GTreeGen(enter_params.rows, enter_params.fieldx, enter_params.connected_component).run())
         if enter_params.graphType == 'Random':
             self.__fill_result(result_writer, GRandomGen(enter_params.rows, enter_params.fieldx).run())
         if enter_params.graphType == 'Full':
-            self.__fill_result(result_writer, GFullGen(enter_params.rows, enter_params.fieldx).run())
+            self.__fill_result(result_writer, GFullGen(enter_params.rows, enter_params.fieldx, enter_params.connected_component).run())
         if enter_params.graphType == 'XGraph':
             self.__fill_result(result_writer,
-                               GSegGen(enter_params.segments, enter_params.nodes, enter_params.fieldx).run())
+                               GSegGen(enter_params.segments, enter_params.nodes, enter_params.fieldx, enter_params.connected_component).run())
         if enter_params.graphType == 'Hierarchy':
-            self.__fill_result(result_writer, GHierarchy(enter_params.rows, []).run())
+            self.__fill_result(result_writer, GHierarchy(enter_params.rows, [], enter_params.connected_component).run())
             # self.__fill_result(result_writer, GHierarchy(enter_params.rows, enter_params.fieldx).run())
