@@ -141,19 +141,22 @@ class GSegGen:
     __sgm = []
     __graph = []
     __temp = []
+    __connected_comp = 1
 
-    def __init__(self, sgm_count, nodes_count, linked_nodes):
+    def __init__(self, sgm_count, nodes_count, linked_nodes, connected_comp=1):
         self.__sgm_count = sgm_count
         self.__nodes_count = nodes_count
         self.__linked_nodes = linked_nodes
+        self.connected_comp = connected_comp
 
     def __r(self, s=1, e=10):
         return random.randint(s, e)
 
-    def __sgm_gen(self):
+    def __sgm_gen(self, next_node):
         for i in range(self.__sgm_count):
-            self.__sgm.append(list(range(0 + i * self.__nodes_count, self.__nodes_count + i * self.__nodes_count)))
+            self.__sgm.append(list(range(i * self.__nodes_count + next_node, self.__nodes_count + i * self.__nodes_count + next_node)))
         self.__add_linked_nodes()
+        return len(self.__sgm) * self.__nodes_count + next_node
 
     def __add_linked_nodes(self):
         n = 0
@@ -181,15 +184,16 @@ class GSegGen:
                     self.__temp.append([s, n])
 
     def run(self):
-        self.__sgm_gen()
-
-        for s in self.__sgm:
-            for d in self.__sgm:
-                if s != d:
-                    self.__build_links(s, d)
+        next_node = 0
+        for cc in range(0, self.connected_comp):
+            self.__sgm.clear()
+            next_node = self.__sgm_gen(next_node)
+            for s in self.__sgm:
+                for d in self.__sgm:
+                    if s != d:
+                        self.__build_links(s, d)
 
         return self.__graph
-
 
 class GHierarchy(XGen):
     node_index = 1

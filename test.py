@@ -27,6 +27,7 @@ class XGen:
     def r(self, s=1, e=10):
         return random.randint(s, e)
 
+
 class GTrivialGen(XGen):
 
     def grs(self, f, m):
@@ -48,6 +49,7 @@ class GTrivialGen(XGen):
         for i in range(0, self.cc):
             self.grs(i + i * self.rows, i)
         return self.data
+
 
 class GFullGen(XGen):
     def grs(self, m):
@@ -77,12 +79,71 @@ class GFullGen(XGen):
             self.grs(i)
         return self.data
 
-# g = GTrivialGen(10, [], 2)
-# d = g.run()
 
-g = GFullGen(3, [], 2)
+class GSegGen:
+    __sgm_count = 0
+    __nodes_count = 0
+    __linked_nodes = []
+    __sgm = []
+    __graph = []
+    __temp = []
+    __connected_comp = 1
+
+    def __init__(self, sgm_count, nodes_count, linked_nodes, connected_comp=1):
+        self.__sgm_count = sgm_count
+        self.__nodes_count = nodes_count
+        self.__linked_nodes = linked_nodes
+        self.connected_comp = connected_comp
+
+    def __r(self, s=1, e=10):
+        return random.randint(s, e)
+
+    def __sgm_gen(self, next_node):
+        for i in range(self.__sgm_count):
+            self.__sgm.append(list(range(i * self.__nodes_count + next_node, self.__nodes_count + i * self.__nodes_count + next_node)))
+        self.__add_linked_nodes()
+        return len(self.__sgm) * self.__nodes_count + next_node
+
+    def __add_linked_nodes(self):
+        n = 0
+        for i in self.__linked_nodes:
+            if i not in self.__sgm[n]:
+                self.__sgm[n].append(i)
+            n = n + 1
+            if n >= len(self.__sgm):
+                n = 0
+
+    def __attr(self):
+        return 'A-' + str(random.randint(1, self.__nodes_count))
+
+    def __get_map(self, sgm):
+        arr = random.sample(sgm, random.randint(1, len(sgm) - 1))
+        return arr
+
+    def __build_links(self, src_sgm, dst_sgm):
+        for s in src_sgm:
+            for n in self.__get_map(dst_sgm):
+                if [s, n] not in self.__temp and [n, s] not in self.__temp:
+                    for i in range(1, self.__r(1, 3)):
+                        self.__graph.append([s, n, self.__attr(), self.__attr(), self.__attr()])
+
+                    self.__temp.append([s, n])
+
+    def run(self):
+        next_node = 0
+        for cc in range(0, self.connected_comp):
+            self.__sgm.clear()
+            next_node = self.__sgm_gen(next_node)
+            for s in self.__sgm:
+                for d in self.__sgm:
+                    if s != d:
+                        self.__build_links(s, d)
+
+        return self.__graph
+
+
+g = GSegGen(2, 3, [], 3)
 d = g.run()
 
 for i in d:
     print(i)
-
