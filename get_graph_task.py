@@ -10,10 +10,10 @@ class XGen:
     temp = []
     linked_nodes = []
 
-    def __init__(self, rows, liked_nodes, connected_comp=1):
+    def __init__(self, rows, linked_nodes, connected_comp=1):
         self.connected_comp = connected_comp
         self.rows = rows
-        self.linked_nodes = liked_nodes
+        self.linked_nodes = linked_nodes
 
     def add_nodes(self, s, e):
         for i in range(1, self.r(2, 4)):
