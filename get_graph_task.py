@@ -30,6 +30,21 @@ class XGen:
         return random.randint(s, e)
 
 
+# tree simple chain
+class GSimpleChainGen(XGen):
+    __count = 0
+
+    def gen(self, offset):
+        for i in range(self.rows):
+            self.add_nodes(i + offset * self.rows, i + 1 + offset * self.rows)
+
+    def run(self):
+        self.__count = self.__count + 1
+        for cc in range(0, self.connected_comp):
+            self.gen(cc)
+        return self.data
+
+
 # tree type graph
 class GTreeGen(XGen):
     __count = 0
@@ -154,7 +169,8 @@ class GSegGen:
 
     def __sgm_gen(self, next_node):
         for i in range(self.__sgm_count):
-            self.__sgm.append(list(range(i * self.__nodes_count + next_node, self.__nodes_count + i * self.__nodes_count + next_node)))
+            self.__sgm.append(list(
+                range(i * self.__nodes_count + next_node, self.__nodes_count + i * self.__nodes_count + next_node)))
         self.__add_linked_nodes()
         return len(self.__sgm) * self.__nodes_count + next_node
 
@@ -195,6 +211,7 @@ class GSegGen:
 
         return self.__graph
 
+
 class GHierarchy(XGen):
     node_index = 1
 
@@ -223,7 +240,8 @@ class GHierarchy(XGen):
 
             for i in range(self.level_len - 1):
                 for n in self.levels[i][1]:
-                    self.add_linked_nodes(n, random.sample(self.levels[i + 1][1], self.r(1, len(self.levels[i + 1][1]))))
+                    self.add_linked_nodes(n,
+                                          random.sample(self.levels[i + 1][1], self.r(1, len(self.levels[i + 1][1]))))
 
             self.node_index = self.node_index + 1
 
@@ -300,7 +318,7 @@ class GenTask(Task):
             EnterParamField('nodes', 'Nodes', ValueType.Integer, is_array=False, required=True, default_value=3,
                             category='Required', description='Nodes count'),
             EnterParamField('graphType', 'GraphType', ValueType.String,
-                            predefined_values=['Trivial', 'Tree', 'Random', 'Full', 'XGraph', 'Hierarchy'],
+                            predefined_values=['Trivial', 'SimpleChain', 'Tree', 'Random', 'Full', 'XGraph', 'Hierarchy'],
                             category='Required',
                             description='Graph types', default_value='Trivial'),
             EnterParamField('fieldx', 'FieldX', ValueType.String, is_array=True,
@@ -324,15 +342,22 @@ class GenTask(Task):
         if enter_params.graphType == 'Trivial':
             self.__fill_result(result_writer, GTrivialGen(enter_params.rows, enter_params.fieldx,
                                                           enter_params.connected_component).run())
+        if enter_params.graphType == 'SimpleChain':
+            self.__fill_result(result_writer,
+                               GSimpleChainGen(enter_params.rows, enter_params.fieldx, enter_params.connected_component).run())
+
         if enter_params.graphType == 'Tree':
-            self.__fill_result(result_writer, GTreeGen(enter_params.rows, enter_params.fieldx, enter_params.connected_component).run())
+            self.__fill_result(result_writer,
+                               GTreeGen(enter_params.rows, enter_params.fieldx, enter_params.connected_component).run())
+
         if enter_params.graphType == 'Random':
             self.__fill_result(result_writer, GRandomGen(enter_params.rows, enter_params.fieldx).run())
         if enter_params.graphType == 'Full':
-            self.__fill_result(result_writer, GFullGen(enter_params.rows, enter_params.fieldx, enter_params.connected_component).run())
+            self.__fill_result(result_writer,
+                               GFullGen(enter_params.rows, enter_params.fieldx, enter_params.connected_component).run())
         if enter_params.graphType == 'XGraph':
             self.__fill_result(result_writer,
-                               GSegGen(enter_params.segments, enter_params.nodes, enter_params.fieldx, enter_params.connected_component).run())
+                               GSegGen(enter_params.segments, enter_params.nodes, enter_params.fieldx,
+                                       enter_params.connected_component).run())
         if enter_params.graphType == 'Hierarchy':
             self.__fill_result(result_writer, GHierarchy(enter_params.rows, [], enter_params.connected_component).run())
-            # self.__fill_result(result_writer, GHierarchy(enter_params.rows, enter_params.fieldx).run())
