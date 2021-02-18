@@ -311,7 +311,7 @@ if __name__ == '__main__':
             sys.exit(1)
         g = GSimpleChainGen(int(sys.argv[2]), [], int(sys.argv[3]))
         d = g.run()
-        g.p(d, 'simplechain.txt')
+        g.p(d, 'simple.txt')
 
     if sys.argv[1] == 'tree':
         print('arguments for tree: rows connected_components')
@@ -329,7 +329,7 @@ if __name__ == '__main__':
             sys.exit(1)
         g = GHierarchy(int(sys.argv[2]), [], int(sys.argv[3]))
         d = g.run()
-        g.p(d, 'hierarhy.txt')
+        g.p(d, 'hierarchy.txt')
 
     if sys.argv[1] == 'trivial':
         print('arguments for trivial: rows connected_components')
@@ -357,9 +357,6 @@ if __name__ == '__main__':
         g = GFullGen(int(sys.argv[2]), [], int(sys.argv[3]))
         d = g.run()
         g.p(d, 'full.txt')
-
-
-    # def __init__(self, sgm_count, nodes_count, linked_nodes, gen_type=0, connected_comp=1):
 
     if sys.argv[1] == 'seg':
         print('arguments for seg: sgm nodes connected_components')
