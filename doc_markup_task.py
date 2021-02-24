@@ -12,46 +12,51 @@ class GTrivialGen:
 
     def run(self):
         for i in range(self.rows):
-            self.data.append([0, i, "Link " + str(i)])
+            if i == 0:
+                self.data.append(['', '', '', ''])
+            elif i == 1:
+                self.data.append([str(i), '', '', ''])
+            elif i == 2:
+                self.data.append([str(i), 'name {}'.format(i), '', ''])
+            elif i == 3:
+                self.data.append([str(i), '', 'name {}'.format(i), ''])
+            else:
+                self.data.append([str(i), 'name {}'.format(i), 'name {}'.format(i * 10), ''])
 
         return self.data
 
 
-class GenHeader(metaclass=Header):
-    display_name = 'Doc markup'
+class DocumentHeader(metaclass=Header):
+    display_name = 'DocumentHeader'
 
-    SourceNode = Field('SourceNode', ValueType.Integer)
-    DestinationNode = Field('DestinationNode', ValueType.Integer)
+    Index = Field('Index', ValueType.String)
     Name = Field('Name', ValueType.String)
+    Description = Field('Description', ValueType.String)
     Markup = Field('Markup', ValueType.String)
 
+
 class FieldType(metaclass=Object):
-    name = 'Node Type'
-    Node = Attribute('Node', ValueType.Integer)
+    name = 'DocumentRecord'
+    Index = Attribute('Index', ValueType.String)
     Name = Attribute('Name', ValueType.String)
+    Description = Attribute('Description', ValueType.String)
     Markup = Attribute('Markup', ValueType.String)
-    IdentAttrs = [Node]
-    CaptionAttrs = [Node]
+    IdentAttrs = [Index]
+    CaptionAttrs = [Index]
 
 
-class Node1ToNode2(metaclass=Link):
-    name = 'Node Link'
+class DocumentSchema(metaclass=Schema):
+    name = 'DocMarkup'
+    Header = DocumentHeader
 
-    LinkName = Attribute('Name', ValueType.String)
-
-    Begin = FieldType
-    End = FieldType
-
-
-class GenSchema(metaclass=Schema):
-    name = 'Doc markup'
-    Header = GenHeader
-
-    source = SchemaObject(FieldType, mapping={FieldType.Node: Header.SourceNode, FieldType.Markup: Header.Markup})
-    destination = SchemaObject(FieldType,
-                               mapping={FieldType.Node: Header.DestinationNode, FieldType.Markup: Header.Markup})
-
-    connection = SchemaLink(Node1ToNode2, mapping={Node1ToNode2.LinkName: Header.Name}, begin=source, end=destination)
+    source = SchemaObject(FieldType, mapping={FieldType.Index: Header.Index,
+                                              FieldType.Name: Header.Name,
+                                              FieldType.Description: Header.Description,
+                                              FieldType.Markup: Header.Markup})
+    destination = SchemaObject(FieldType, mapping={FieldType.Index: Header.Index,
+                                                   FieldType.Name: Header.Name,
+                                                   FieldType.Description: Header.Description,
+                                                   FieldType.Markup: Header.Markup})
 
 
 class DocTask(Task):
@@ -60,18 +65,18 @@ class DocTask(Task):
         return 'b795762d-6a93-4bc6-8a42-6440d400107e'
 
     def get_category(self):
-        return 'Doc markup tasks'
+        return 'DocumentTask'
 
     def get_display_name(self):
-        return 'Doc markup task'
+        return 'Document task'
 
     def get_headers(self):
-        GenHeader.set_property(GenHeader.Markup.system_name, 'hidden', True)
-        return HeaderCollection(GenHeader)
+        DocumentHeader.set_property(DocumentHeader.Markup.system_name, 'hidden', True)
+        return HeaderCollection(DocumentHeader)
 
     def get_graph_macros(self):
         return MacroCollection(
-            Macro(name='Doc markup lookup', mapping_flags=[GraphMappingFlags.Completely], schemas=[GenSchema])
+            Macro(name='DocumentMarkupLookup', mapping_flags=[GraphMappingFlags.Completely], schemas=[DocumentSchema])
         )
 
     def get_enter_params(self):
@@ -80,15 +85,15 @@ class DocTask(Task):
                             category='Required', description='Rows count'))
 
     def get_schemas(self):
-        return GenSchema
+        return DocumentSchema
 
     def __fill_result(self, result_writer, data):
         for i in data:
             result_writer.write_line({
-                GenHeader.SourceNode: i[0],
-                GenHeader.DestinationNode: i[1],
-                GenHeader.Name: i[2],
-                GenHeader.Markup: self.__get_content(random.randint(0, 2))
+                DocumentHeader.Index: i[0],
+                DocumentHeader.Name: i[1],
+                DocumentHeader.Description: i[2],
+                DocumentHeader.Markup: self.__get_content(random.randint(0, 2))
             })
 
     def __get_content(self, selector):
