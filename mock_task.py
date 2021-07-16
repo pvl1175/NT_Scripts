@@ -304,7 +304,7 @@ class MockTask(Task):
                 'XOg5PiU5mISgTFePvGkmppkbkCMZJTu3brZts6sxzPTS/binQx3VefCmWexIfnnxh9XzU11HA9P6cJoczKeSeD4X53VjBhjYIl47zPEc' \
                 'zBMbiE7LbGZy9EKZ7VU8Xj7N4+P4DRzPfeGezl4uAAAAAElFTkSuQmCC'
 
-            line[MockHeader.Resource] = Resource("C:\\Users\\SShishov\\Desktop\\!test_data\\10_1_emails.txt", open("C:\\Users\\SShishov\\Desktop\\!test_data\\10_1_emails.txt", 'rb').read())
+            #line[MockHeader.Resource] = Resource("D:\\dev\\temp\\export_test\\test.doc", open("D:\\dev\\temp\\export_test\\test.doc", 'rb').read())
 
             line[MockHeader.HiddenField] = 'Text in hidden field'
             result_writer.write_line(line, header_class=MockHeader)
