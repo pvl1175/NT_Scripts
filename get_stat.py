@@ -133,6 +133,10 @@ class Stat:
         pdf = FPDF(format='a4', unit='cm')
         pdf.add_page()
         pdf.set_font('Times', '', 10.0)
+
+        # pdf.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
+        # pdf.set_font('DejaVu', '', 14)
+
         epw = pdf.w - 2 * pdf.l_margin
         col_width = epw / 4
         th = pdf.font_size
@@ -140,9 +144,9 @@ class Stat:
         files = []
         for table in self.__tables():
             data = self.__get_data(num1, num2, table[0])
-            pdf.cell(col_width, th, str('Number'), border=1)
-            pdf.cell(col_width, th, str('Out'), border=1)
-            pdf.cell(col_width, th, str('In'), border=1)
+            pdf.cell(col_width, th, str('#'), border=1)
+            pdf.cell(col_width, th, str('->'), border=1)
+            pdf.cell(col_width, th, str('<-'), border=1)
             pdf.ln(th)
 
             for data_row in data:
@@ -216,6 +220,7 @@ class SqliteTask(Task):
         stat = Stat(enter_params.path)
         self.__fill_result(result_writer, stat.reports('num1', 'num2'))
 
+# for tests
 # stat = Stat('D:\\dev\\nt\\lampyre\\master\\AS\\AS.UV\\bin\\Debug\\net472\\!sqlite_project\\3b5cbesa.rk3\\ca6b84c20b7644a3b9fbf6170876f3bf.sqlite')
 # resources = stat.reports('num1', 'num2')
 #
@@ -223,7 +228,6 @@ class SqliteTask(Task):
 #     print(resource[0][0])
 #     print(resource[1][0])
 #     print(resource[2][0])
-
 #
 # file = open("d:/temp/" + resources[0][0][0], "w")
 # file.write(resources[0][0][1])
